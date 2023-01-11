@@ -1,0 +1,38 @@
+/* Grid Square */
+.gridSquare {
+    border-style: solid;
+    width: 20px;
+    height: 20px;
+  }
+
+  .gridSquare.empty {
+    background-color: grey;
+  }
+
+  .gridSquare.empty:hover {
+    background-color: rgba(255, 255, 0, 0.521);
+  }
+
+  .gridSquare.ship {
+    background-color: indigo;
+  }
+
+  .gridSquare.ship:hover {
+    background-color: rgba(76, 0, 130, 0.2)
+  }
+
+  .gridSquare.hit {
+    background-color: red;
+  }
+
+  .gridSquare.miss {
+    background-color: grey;
+  }
+
+  .gridSquare.sunk {
+    background-color: rgb(95, 23, 23);
+  }
+
+  .gridSquare.forbidden {
+    background-color: rgb(209, 116, 116)
+  }

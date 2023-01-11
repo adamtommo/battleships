@@ -1,0 +1,36 @@
+.smallSquare {
+    width: 10px;
+    height: 10px;
+    border: 1px solid green;
+    background-color: blue;
+    
+  }
+
+.smallShip {
+    display: flex;
+    flex-direction: row;
+    width: 150px;
+}
+
+.shipList {
+    height:fit-content;
+    width: 150px;
+    justify-content: space-between;
+    background-color: indigo;
+    border-radius: 3px;
+    padding: 5px;
+    box-shadow: 0 1px 3px hsla(0, 0%, 0.2);
+    
+  }
+
+.shipItem {
+    margin-bottom: 0.25em;
+    cursor: pointer;
+}
+.shipItem:hover {
+    opacity: 0.9;
+}
+
+.shipItem.selected {
+    background-color: rgb(0, 128, 0);
+}
