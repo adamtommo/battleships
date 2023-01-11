@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Card from "react-bootstrap/Card";
 import classes from "./Fleet.module.css";
 import cx from "classnames";
+import { Alert, Button } from "react-bootstrap";
 
 export const AVAILABLE_SHIPS = [
     {
@@ -33,6 +34,7 @@ export const AVAILABLE_SHIPS = [
 
 const Fleet = (props: {
     onShipSelect: React.Dispatch<React.SetStateAction<String>>;
+    onStart: () => void;
 }) => {
     const miniShips = (length: number) => {
         const ship = [];
@@ -50,6 +52,7 @@ const Fleet = (props: {
 
     return (
         <Card className={classes.shipList}>
+            <Alert variant="dark">Your Ships</Alert>
             {AVAILABLE_SHIPS.map(
                 (
                     ship: { name: string; length: number; placed: boolean },
@@ -83,6 +86,12 @@ const Fleet = (props: {
                     );
                 }
             )}
+            {AVAILABLE_SHIPS.every((ship) => ship.placed === true) ? (
+                <>
+                    <Alert variant="primary">Ships are in formation!</Alert>
+                    <Button onClick={props.onStart}>Play</Button>
+                </>
+            ) : null}
         </Card>
     );
 };
