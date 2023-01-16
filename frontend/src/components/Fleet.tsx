@@ -92,6 +92,15 @@ const Fleet = (props: {
                     <Button onClick={props.onStart}>Play</Button>
                 </>
             ) : null}
+            <Button
+                onClick={() => {
+                    AVAILABLE_SHIPS.forEach((ship) => (ship.placed = false));
+                    props.onShipSelect("reset");
+                }}
+                variant="secondary"
+            >
+                Reset
+            </Button>
         </Card>
     );
 };

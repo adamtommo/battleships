@@ -17,7 +17,7 @@ export const indexToCoords = (index: number) => {
 export const shipIndices = (ship: {
     position: number;
     length: number;
-    orientation: String;
+    orientation: string;
 }) => {
     let position = ship.position;
     let indices = [];

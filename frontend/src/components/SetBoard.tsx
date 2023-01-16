@@ -1,6 +1,6 @@
 import GridSquare from "./GridSquare";
 import classes from "./Board.module.css";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { AVAILABLE_SHIPS } from "./Fleet";
 import {
     cols,
@@ -14,7 +14,7 @@ import Alert from "react-bootstrap/Alert";
 const calculateOverhang = (ship: {
     position: number;
     length: number;
-    orientation: String;
+    orientation: string;
 }) => {
     const coords = indexToCoords(ship.position);
     return Math.max(
@@ -28,16 +28,31 @@ const calculateOverhang = (ship: {
 const SetBoard = (props: {
     selectedShip: String;
     onShipSelect: React.Dispatch<React.SetStateAction<String>>;
-    setPlayerBoard: React.Dispatch<React.SetStateAction<{}>>;
+    setInitialBoard: React.Dispatch<
+        SetStateAction<
+            | {
+                  board: String[];
+                  shipLocations: { name: string; location: number[] }[];
+              }
+            | undefined
+        >
+    >;
 }) => {
     const [indices, setIndices] = useState<number[]>([]);
     const [outOfBounds, setOutOfBounds] = useState(false);
-    const [board, setBoard] = useState(generateEmptyBoard());
-    const [boardPrev, setBoardPrev] = useState(board);
+    const [board, setBoard] = useState<String[]>(generateEmptyBoard());
+    const [boardPrev, setBoardPrev] = useState<String[]>(generateEmptyBoard());
     const [orientation, setOrientation] = useState("horizontal");
-    const [shipFormation, setShipFormation] = useState<{}[]>([]);
+    const [shipFormation, setShipFormation] = useState<
+        { name: string; location: number[] }[]
+    >([]);
 
     useEffect(() => {
+        if (props.selectedShip === "reset") {
+            setBoardPrev(generateEmptyBoard());
+            setShipFormation([]);
+            return;
+        }
         const temp = boardPrev.slice();
         setBoard(boardPrev);
         let place = true;
@@ -57,7 +72,7 @@ const SetBoard = (props: {
                 setBoard(temp);
             });
         }
-    }, [boardPrev, indices, outOfBounds]);
+    }, [boardPrev, indices, outOfBounds, props.selectedShip]);
 
     const currentCoord = (i: number, click: boolean, rotate: boolean) => {
         if (i === -1) {
@@ -107,7 +122,7 @@ const SetBoard = (props: {
                         const addShip = [
                             ...shipFormation,
                             {
-                                ship: AVAILABLE_SHIPS[index].name,
+                                name: AVAILABLE_SHIPS[index].name,
                                 location: indices,
                             },
                         ];
@@ -119,8 +134,7 @@ const SetBoard = (props: {
                 }
             }
         }
-        props.setPlayerBoard({
-            type: "board",
+        props.setInitialBoard({
             board: board,
             shipLocations: shipFormation,
         });
@@ -130,7 +144,7 @@ const SetBoard = (props: {
         <>
             <Alert variant="dark">You</Alert>
             <div className={classes.board}>
-                {board.map((state: string, i: number) => {
+                {board.map((state: String, i: number) => {
                     return (
                         <GridSquare
                             currentCoord={currentCoord}
