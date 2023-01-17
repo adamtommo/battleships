@@ -2,7 +2,7 @@ import classes from "./GridSquare.module.css";
 import cx from "classnames";
 
 const GridSquare = (props: {
-    state: String;
+    state: string;
     index: number;
     currentCoord: (i: number, click: boolean, rotate: boolean) => void;
 }) => {

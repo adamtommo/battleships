@@ -53,17 +53,18 @@ wss.on("connection", (ws) => {
             );
             const game = games.find((game) => game.room === room.name);
             const player = JSON.parse(data.player);
+            const opponent = JSON.parse(data.opponent);
 
             if (room.playerOne === userId) {
                 game.playerOneBoard = player.board;
                 game.playerOneShips = player.shipLocations;
-                game.playerOneOpponent = data.opponent;
+                game.playerOneOpponent = opponent;
                 game.playerOneReady = true;
             }
             if (room.playerTwo === userId) {
                 game.playerTwoBoard = player.board;
                 game.playerTwoShips = player.shipLocations;
-                game.playerTwoOpponent = data.opponent;
+                game.playerTwoOpponent = opponent;
                 game.playerTwoReady = true;
             }
             if (game.playerOneReady && game.playerTwoReady) {
@@ -108,7 +109,7 @@ wss.on("connection", (ws) => {
                         data.where
                     ] = "hit";
 
-                    game.playerTwoRemaining.forEach((ship) => {
+                    game.playerTwoRemaining.forEach((ship, i) => {
                         const index = ship.location.indexOf(data.where);
                         if (index !== -1) {
                             ship.location.splice(index, 1);
@@ -117,12 +118,17 @@ wss.on("connection", (ws) => {
                             const sunk = game.playerTwoShips.find(
                                 (sunkShip) => sunkShip.name === ship.name
                             );
-                            sunk.location.forEach((i) => {
-                                game.playerTwoBoard[i] = "sunk";
-                                game.playerOneOpponent[i] = "sunk";
+                            sunk.location.forEach((square) => {
+                                game.playerTwoBoard[square] = "sunk";
+                                game.playerOneOpponent[square] = "sunk";
                             });
+                            game.playerTwoRemaining.splice(i, 1);
                         }
                     });
+                    if (game.playerTwoRemaining.length === 0) {
+                        playerOne.send(JSON.stringify({ type: "win" }));
+                        playerTwo.send(JSON.stringify({ type: "lose" }));
+                    }
                 }
             }
 
@@ -142,7 +148,7 @@ wss.on("connection", (ws) => {
                         data.where
                     ] = "hit";
 
-                    game.playerOneRemaining.forEach((ship) => {
+                    game.playerOneRemaining.forEach((ship, i) => {
                         const index = ship.location.indexOf(data.where);
                         if (index !== -1) {
                             ship.location.splice(index, 1);
@@ -151,18 +157,23 @@ wss.on("connection", (ws) => {
                             const sunk = game.playerOneShips.find(
                                 (sunkShip) => sunkShip.name === ship.name
                             );
-                            sunk.location.forEach((i) => {
-                                game.playerOneBoard[i] = "sunk";
-                                game.playerTwoOpponent[i] = "sunk";
+                            sunk.location.forEach((square) => {
+                                game.playerOneBoard[square] = "sunk";
+                                game.playerTwoOpponent[square] = "sunk";
                             });
+                            game.playerOneRemaining.splice(i, 1);
                         }
                     });
+                    if (game.playerOneRemaining.length === 0) {
+                        playerTwo.send(JSON.stringify({ type: "win" }));
+                        playerOne.send(JSON.stringify({ type: "lose" }));
+                    }
                 }
             }
             playerTwo.send(
                 JSON.stringify({
                     type: "setYou",
-                    board: {
+                    player: {
                         board: game.playerTwoBoard,
                         shipLocations: game.playerTwoShips,
                     },
@@ -171,7 +182,7 @@ wss.on("connection", (ws) => {
             playerOne.send(
                 JSON.stringify({
                     type: "setYou",
-                    board: {
+                    player: {
                         board: game.playerOneBoard,
                         shipLocations: game.playerOneShips,
                     },
@@ -180,7 +191,7 @@ wss.on("connection", (ws) => {
             playerOne.send(
                 JSON.stringify({
                     type: "setOpponent",
-                    board: {
+                    player: {
                         board: game.playerOneOpponent,
                         shipLocations: game.playerTwoShips,
                     },
@@ -189,7 +200,7 @@ wss.on("connection", (ws) => {
             playerTwo.send(
                 JSON.stringify({
                     type: "setOpponent",
-                    board: {
+                    player: {
                         board: game.playerTwoOpponent,
                         shipLocations: game.playerOneShips,
                     },
@@ -222,6 +233,7 @@ wss.on("connection", (ws) => {
 
         rooms.splice(roomIndex, 1);
         games.splice(gameIndex, 1);
+        delete clients[userId];
         broadcast({ type: "rooms", rooms: rooms });
     });
 });

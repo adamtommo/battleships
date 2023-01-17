@@ -1,7 +1,7 @@
 export const rows: number = 10;
 export const cols: number = 10;
 
-export const generateEmptyBoard = () => {
+export const generateEmptyBoard: () => string[] = () => {
     return new Array(rows * cols).fill("empty");
 };
 

@@ -26,12 +26,12 @@ const calculateOverhang = (ship: {
 };
 
 const SetBoard = (props: {
-    selectedShip: String;
-    onShipSelect: React.Dispatch<React.SetStateAction<String>>;
+    selectedShip: string;
+    onShipSelect: React.Dispatch<React.SetStateAction<string>>;
     setInitialBoard: React.Dispatch<
         SetStateAction<
             | {
-                  board: String[];
+                  board: string[];
                   shipLocations: { name: string; location: number[] }[];
               }
             | undefined
@@ -40,8 +40,8 @@ const SetBoard = (props: {
 }) => {
     const [indices, setIndices] = useState<number[]>([]);
     const [outOfBounds, setOutOfBounds] = useState(false);
-    const [board, setBoard] = useState<String[]>(generateEmptyBoard());
-    const [boardPrev, setBoardPrev] = useState<String[]>(generateEmptyBoard());
+    const [board, setBoard] = useState<string[]>(generateEmptyBoard());
+    const [boardPrev, setBoardPrev] = useState<string[]>(generateEmptyBoard());
     const [orientation, setOrientation] = useState("horizontal");
     const [shipFormation, setShipFormation] = useState<
         { name: string; location: number[] }[]
@@ -144,7 +144,7 @@ const SetBoard = (props: {
         <>
             <Alert variant="dark">You</Alert>
             <div className={classes.board}>
-                {board.map((state: String, i: number) => {
+                {board.map((state: string, i: number) => {
                     return (
                         <GridSquare
                             currentCoord={currentCoord}

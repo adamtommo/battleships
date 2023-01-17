@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SetBoard from "./SetBoard";
 import Fleet, { AVAILABLE_SHIPS } from "./Fleet";
 import Board from "./Board";
-import { Alert, Col, Container, Row } from "react-bootstrap";
+import { Alert, Button, Col, Container, Modal, Row } from "react-bootstrap";
 import { WelcomeScreen } from "./WelcomeScreen";
 import useWebSocket from "react-use-websocket";
 import { generateEmptyBoard } from "./BoardFunctions";
@@ -16,37 +16,42 @@ const resetShips = () => {
 const Game = () => {
     const [room, setRoom] = useState("");
     const [rooms, setRooms] = useState<
-        { name: string; playerOne: string; playerTwo: String }[]
+        { name: string; playerOne: string; playerTwo: string }[]
     >([]);
-    const [selectedShip, setSelectedShip] = useState<String>("");
+    const [selectedShip, setSelectedShip] = useState<string>("");
     const [you, setYou] = useState<{
-        board: String[];
+        board: string[];
         shipLocations: {
             name: string;
             location: number[];
         }[];
     }>();
     const [opponent, setOpponent] = useState<{
-        board: String[];
-        shipLocations?: {
+        board: string[];
+        shipLocations: {
             name: string;
             location: number[];
         }[];
-    }>({ board: generateEmptyBoard() });
+    }>({
+        board: generateEmptyBoard(),
+        shipLocations: [{ name: "null", location: [0] }],
+    });
 
     const [gameState, setGameState] = useState("intro");
-    const [fullError, setFullError] = useState(false);
+    const [fullError, setFullError] = useState<boolean>(false);
     const [disconnectError, setDisconnectError] = useState(false);
-    const [waiting, setWaiting] = useState(false);
-    const [yourTurn, setYourTurn] = useState(false);
+    const [waiting, setWaiting] = useState<boolean>(false);
+    const [yourTurn, setYourTurn] = useState<boolean>(false);
+    const [winner, setWinner] = useState<boolean>(false);
+    const [loser, setLoser] = useState<boolean>(false);
 
     const {
-        sendMessage,
+        // sendMessage,
         sendJsonMessage,
         lastMessage,
-        lastJsonMessage,
-        readyState,
-        getWebSocket,
+        // lastJsonMessage,
+        // readyState,
+        // getWebSocket,
     } = useWebSocket(WS_URL, {
         share: true,
         onOpen() {
@@ -55,10 +60,10 @@ const Game = () => {
     });
 
     useEffect(() => {
-        if (room === "") {
-            return;
+        if (room !== "") {
+            sendJsonMessage({ type: "room", room: room });
         }
-        sendJsonMessage({ type: "room", room: room });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [room]);
 
     useEffect(() => {
@@ -79,7 +84,6 @@ const Game = () => {
             }
         }
         if (type === "rooms") {
-            console.log(message.rooms);
             setRooms(message.rooms);
         }
         if (type === "kick") {
@@ -98,15 +102,22 @@ const Game = () => {
             setYourTurn(!yourTurn);
         }
         if (type === "setYou") {
-            setYou(message.board);
+            setYou(message.player);
         }
         if (type === "setOpponent") {
-            const where: number = message.square;
-            if (message.state === "hit") {
-                opponent.board[where] = "hit";
-            }
-            setOpponent(message.board);
+            setOpponent(message.player);
         }
+        if (type === "win") {
+            setWaiting(false);
+            setYourTurn(false);
+            setWinner(true);
+        }
+        if (type === "lose") {
+            setWaiting(false);
+            setYourTurn(false);
+            setLoser(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
 
     const sendInitial = () => {
@@ -117,7 +128,7 @@ const Game = () => {
         //         "Content-Type": "application/json",
         //         "Access-Control-Allow-Origin": "*",
         //     },
-        //     body: JSON.Stringify(initialBoard),
+        //     body: JSON.stringify(initialBoard),
         // };
         // console.log(requestOptions);
         // fetch(
@@ -133,7 +144,7 @@ const Game = () => {
         sendJsonMessage({
             type: "setBoard",
             player: JSON.stringify(you),
-            opponent: generateEmptyBoard(),
+            opponent: JSON.stringify(generateEmptyBoard()),
         });
     };
 
@@ -143,6 +154,40 @@ const Game = () => {
 
     return (
         <>
+            {gameState === "play" ? (
+                <>
+                    <Modal show={winner}>
+                        <Modal.Body>
+                            <Alert variant="success"> You WIN!</Alert>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button
+                                onClick={() => {
+                                    setGameState("intro");
+                                    window.location.reload();
+                                }}
+                            >
+                                Return
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal show={loser}>
+                        <Modal.Body>
+                            <Alert variant="danger"> You LOSE!</Alert>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button
+                                onClick={() => {
+                                    setGameState("intro");
+                                    window.location.reload();
+                                }}
+                            >
+                                Return
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </>
+            ) : null}
             {waiting ? (
                 <Alert variant="info"> Waiting for other player</Alert>
             ) : null}

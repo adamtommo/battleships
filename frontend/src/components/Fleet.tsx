@@ -33,7 +33,7 @@ export const AVAILABLE_SHIPS = [
 ];
 
 const Fleet = (props: {
-    onShipSelect: React.Dispatch<React.SetStateAction<String>>;
+    onShipSelect: React.Dispatch<React.SetStateAction<string>>;
     onStart: () => void;
 }) => {
     const miniShips = (length: number) => {
@@ -44,7 +44,7 @@ const Fleet = (props: {
         return ship;
     };
 
-    const [selected, setSelected] = useState<String>("");
+    const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
         props.onShipSelect(selected);

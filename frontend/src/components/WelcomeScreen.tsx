@@ -4,7 +4,7 @@ import classes from "./WelcomeScreen.module.css";
 
 export const WelcomeScreen = (props: {
     setRoomName: React.Dispatch<React.SetStateAction<string>>;
-    roomsList: { name: string; playerOne: string; playerTwo: String }[];
+    roomsList: { name: string; playerOne: string; playerTwo: string }[];
 }) => {
     const [roomName, setRoomName] = useState("");
 
