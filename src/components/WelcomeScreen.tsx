@@ -4,6 +4,7 @@ import classes from "./WelcomeScreen.module.css";
 
 export const WelcomeScreen = (props: {
     setRoomName: React.Dispatch<React.SetStateAction<string>>;
+    refreshRooms: () => void;
     roomsList: string[];
 }) => {
     const [roomName, setRoomName] = useState("");
@@ -86,6 +87,12 @@ export const WelcomeScreen = (props: {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>
                         Close
+                    </Button>
+                    <Button
+                        variant="danger"
+                        onClick={() => props.refreshRooms()}
+                    >
+                        Refresh
                     </Button>
                 </Modal.Footer>
             </Modal>

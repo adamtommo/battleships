@@ -185,7 +185,11 @@ const Game = () => {
                 </Alert>
             ) : null}
             {gameState === "intro" ? (
-                <WelcomeScreen setRoomName={setRoom} roomsList={rooms} />
+                <WelcomeScreen
+                    refreshRooms={() => sendJsonMessage({ action: "getRoom" })}
+                    setRoomName={setRoom}
+                    roomsList={rooms}
+                />
             ) : null}
             <Container>
                 <Row>
