@@ -6,11 +6,8 @@ import { Alert, Button, Col, Container, Modal, Row } from "react-bootstrap";
 import { WelcomeScreen } from "./WelcomeScreen";
 import useWebSocket from "react-use-websocket";
 import { generateEmptyBoard } from "./BoardFunctions";
-import { generateComputerBoard, computerFire } from "./computer";
-
-// const WS_URL = "ws://127.0.0.1:8000";
-const WS_URL =
-    "wss://bljpe2jkpl.execute-api.eu-west-2.amazonaws.com/production";
+import { generateComputerBoard, computerFire } from "./Computer";
+import { WS_URL } from "../WS";
 
 const Game = () => {
     const [rooms, setRooms] = useState<string[]>([]);
