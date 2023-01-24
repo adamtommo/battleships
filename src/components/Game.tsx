@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import SetBoard from "./SetBoard";
-import Fleet, { AVAILABLE_SHIPS } from "./Fleet";
+import Fleet from "./Fleet";
 import Board from "./Board";
 import { Alert, Button, Col, Container, Modal, Row } from "react-bootstrap";
 import { WelcomeScreen } from "./WelcomeScreen";
 import useWebSocket from "react-use-websocket";
 import { generateEmptyBoard } from "./BoardFunctions";
+import { generateComputerBoard, computerFire } from "./computer";
 
 // const WS_URL = "ws://127.0.0.1:8000";
 const WS_URL =
-    "wss://7zt0ornxg1.execute-api.eu-west-2.amazonaws.com/production";
+    "wss://bljpe2jkpl.execute-api.eu-west-2.amazonaws.com/production";
 
 const Game = () => {
-    const [room, setRoom] = useState("");
     const [rooms, setRooms] = useState<string[]>([]);
     const [selectedShip, setSelectedShip] = useState<string>("");
     const [you, setYou] = useState<{
@@ -34,6 +34,7 @@ const Game = () => {
     });
 
     const [gameState, setGameState] = useState("intro");
+    const [computer, setComputer] = useState(false);
     const [fullError, setFullError] = useState<boolean>(false);
     const [disconnectError, setDisconnectError] = useState(false);
     const [waiting, setWaiting] = useState<boolean>(false);
@@ -55,12 +56,16 @@ const Game = () => {
         },
     });
 
-    useEffect(() => {
-        if (room !== "") {
-            sendJsonMessage({ action: "room", room: room });
+    const setRoom = (room: string, multiplayer: boolean) => {
+        sendJsonMessage({
+            action: "room",
+            room: room,
+            multiplayer: multiplayer,
+        });
+        if (!multiplayer) {
+            setComputer(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [room]);
+    };
 
     useEffect(() => {
         if (!lastMessage) {
@@ -81,7 +86,7 @@ const Game = () => {
         }
         if (type === "kick") {
             window.location.reload();
-            setDisconnectError(true);
+            window.onload = () => setDisconnectError(true);
         }
         if (type === "start") {
             setWaiting(true);
@@ -90,6 +95,18 @@ const Game = () => {
         if (type === "turn") {
             setWaiting(!waiting);
             setYourTurn(!yourTurn);
+        }
+        if (type === "computerTurn") {
+            setWaiting(!waiting);
+            setYourTurn(!yourTurn);
+            const computerOppBoard: string[] = message.board;
+            const coords: number = computerFire(computerOppBoard);
+            fire(coords, true);
+        }
+        if (type === "computerTurnAgain") {
+            const computerOppBoard: string[] = message.board;
+            const coords: number = computerFire(computerOppBoard);
+            fire(coords, true);
         }
         if (type === "setYou") {
             setYou(message.player);
@@ -101,11 +118,13 @@ const Game = () => {
             setWaiting(false);
             setYourTurn(false);
             setWinner(true);
+            setComputer(false);
         }
         if (type === "lose") {
             setWaiting(false);
             setYourTurn(false);
             setLoser(true);
+            setComputer(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
@@ -113,15 +132,40 @@ const Game = () => {
     const sendInitial = () => {
         setWaiting(true);
 
+        //Sometimes sends the last ship placed as forbidden, this is to prevent this.
+        const boardCheck = you;
+        boardCheck!.board.forEach((square, i) => {
+            if (square === "forbidden") {
+                boardCheck!.board[i] = "ship";
+            }
+        });
+        setYou(boardCheck);
+
         sendJsonMessage({
             action: "setBoard",
             player: JSON.stringify(you),
             opponent: JSON.stringify(generateEmptyBoard()),
         });
+
+        if (computer) {
+            sendJsonMessage({
+                action: "setBoard",
+                player: JSON.stringify(generateComputerBoard()),
+                opponent: JSON.stringify(generateEmptyBoard()),
+                computer: true,
+            });
+        }
     };
 
-    const fire = (i: number) => {
-        sendJsonMessage({ action: "fire", where: i });
+    const fire = (i: number, computerFire: boolean) => {
+        if (computerFire) {
+            console.log("Thinking!");
+            setTimeout(() => {
+                sendJsonMessage({ action: "fire", where: i, computer: true });
+            }, 1000);
+        } else {
+            sendJsonMessage({ action: "fire", where: i, computer: false });
+        }
     };
 
     return (

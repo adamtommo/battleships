@@ -9,6 +9,7 @@ import {
     rows,
     shipIndices,
 } from "./BoardFunctions";
+
 import Alert from "react-bootstrap/Alert";
 
 const calculateOverhang = (ship: {

@@ -8,7 +8,7 @@ const Board = (props: {
     player: string;
     turn: boolean;
     board: string[];
-    fire: (index: number) => void;
+    fire: (index: number, computer: boolean) => void;
 }) => {
     const [board, setBoard] = useState<string[]>(generateEmptyBoard());
 
@@ -23,7 +23,7 @@ const Board = (props: {
             props.player === "Opponent" &&
             board[i] === "empty"
         ) {
-            props.fire(i);
+            props.fire(i, false);
         }
     };
 

@@ -3,7 +3,7 @@ import { Button, Container, Form, Modal, Table } from "react-bootstrap";
 import classes from "./WelcomeScreen.module.css";
 
 export const WelcomeScreen = (props: {
-    setRoomName: React.Dispatch<React.SetStateAction<string>>;
+    setRoomName: (room: string, multiplayer: boolean) => void;
     refreshRooms: () => void;
     roomsList: string[];
 }) => {
@@ -39,15 +39,29 @@ export const WelcomeScreen = (props: {
                     <Form.Group className="mb-3">
                         <Button
                             onClick={() => {
-                                props.setRoomName(roomName);
+                                props.setRoomName(roomName, true);
                             }}
                         >
                             Enter Room
                         </Button>
+                        {"     "}
+                        <Button variant="danger" onClick={handleShow}>
+                            View Rooms
+                        </Button>
+                        <h2 className={classes.title}>OR</h2>
+                        <Button
+                            onClick={() => {
+                                props.setRoomName(
+                                    Math.random()
+                                        .toString(36)
+                                        .substring(2, 999),
+                                    false
+                                );
+                            }}
+                        >
+                            Play Computer
+                        </Button>
                     </Form.Group>
-                    <Button variant="danger" onClick={handleShow}>
-                        Existing Rooms
-                    </Button>
                 </Form>
             </Container>
 
@@ -71,7 +85,10 @@ export const WelcomeScreen = (props: {
                                         <td>
                                             <Button
                                                 onClick={() =>
-                                                    props.setRoomName(room)
+                                                    props.setRoomName(
+                                                        room,
+                                                        true
+                                                    )
                                                 }
                                             >
                                                 {" "}
