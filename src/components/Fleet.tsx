@@ -53,6 +53,7 @@ const Fleet = (props: {
     return (
         <Card className={classes.shipList}>
             <Alert variant="dark">Your Ships</Alert>
+            <Alert variant="info">Right click to rotate</Alert>
             {AVAILABLE_SHIPS.map(
                 (
                     ship: { name: string; length: number; placed: boolean },
