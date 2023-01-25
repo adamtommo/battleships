@@ -201,10 +201,9 @@ const Game = () => {
                     </Modal>
                 </>
             ) : null}
-            {waiting ? (
+            {waiting && gameState === "setup" ? (
                 <Alert variant="info"> Waiting for other player</Alert>
             ) : null}
-            {yourTurn ? <Alert variant="primary"> Your Turn</Alert> : null}
             {disconnectError ? (
                 <Alert
                     variant="warning"
