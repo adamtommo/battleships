@@ -3,6 +3,7 @@ import classes from "./Board.module.css";
 import { useEffect, useState } from "react";
 import { generateEmptyBoard } from "./BoardFunctions";
 import { Alert } from "react-bootstrap";
+import cx from "classnames";
 
 const Board = (props: {
     player: string;
@@ -30,7 +31,15 @@ const Board = (props: {
     return (
         <>
             <Alert variant="dark">{props.player}</Alert>
-            <div className={classes.board}>
+            <div
+                className={
+                    props.turn && props.player === "Opponent"
+                        ? cx(classes.board, classes.turn)
+                        : props.player !== "Opponent" && !props.turn
+                        ? cx(classes.board, classes.turn)
+                        : classes.board
+                }
+            >
                 {board.map((state: string, i: number) => {
                     return (
                         <GridSquare
