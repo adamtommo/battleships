@@ -1,3 +1,5 @@
+import { CalculateOverhangInterface } from "../components/interfaces/BoardInterface";
+
 export const rows: number = 10;
 export const cols: number = 10;
 
@@ -11,6 +13,16 @@ export const coordsToIndex = (coords: { x: number; y: number }) => {
 
 export const indexToCoords = (index: number) => {
     return { x: index % rows, y: Math.floor(index / rows) };
+};
+
+export const calculateOverhang = (ship: CalculateOverhangInterface) => {
+    const coords = indexToCoords(ship.position);
+    return Math.max(
+        ship.orientation === "vertical"
+            ? coords.y + ship.length - rows
+            : coords.x + ship.length - cols,
+        0
+    );
 };
 
 // Returns the indices that entity would take up

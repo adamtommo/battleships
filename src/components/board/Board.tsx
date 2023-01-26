@@ -1,16 +1,14 @@
-import GridSquare from "./GridSquare";
-import classes from "./Board.module.css";
 import { useEffect, useState } from "react";
-import { generateEmptyBoard } from "./BoardFunctions";
-import { Alert } from "react-bootstrap";
-import cx from "classnames";
 
-const Board = (props: {
-    player: string;
-    turn: boolean;
-    board: string[];
-    fire: (index: number, computer: boolean) => void;
-}) => {
+import GridSquare from "./GridSquare";
+import { generateEmptyBoard } from "../../utils/BoardFunctions";
+import Alert from "react-bootstrap/Alert";
+
+import classes from "../css/Board.module.css";
+import cx from "classnames";
+import { BoardInterface } from "../interfaces/BoardInterface";
+
+const Board = (props: BoardInterface) => {
     const [board, setBoard] = useState<string[]>(generateEmptyBoard());
 
     useEffect(() => {

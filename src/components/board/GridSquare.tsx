@@ -1,11 +1,8 @@
-import classes from "./GridSquare.module.css";
+import classes from "../css/GridSquare.module.css";
 import cx from "classnames";
+import { GridSquareInterface } from "../interfaces/BoardInterface";
 
-const GridSquare = (props: {
-    state: string;
-    index: number;
-    currentCoord: (i: number, click: boolean, rotate: boolean) => void;
-}) => {
+const GridSquare = (props: GridSquareInterface) => {
     return (
         <div
             onMouseEnter={() => props.currentCoord(props.index, false, false)}

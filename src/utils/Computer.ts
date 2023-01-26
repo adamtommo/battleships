@@ -5,7 +5,7 @@ import {
     cols,
     generateEmptyBoard,
 } from "./BoardFunctions";
-import { AVAILABLE_SHIPS } from "./Fleet";
+import { AVAILABLE_SHIPS } from "../components/board/Fleet";
 
 const calculateOverhang = (
     position: number,

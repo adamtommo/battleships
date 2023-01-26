@@ -1,52 +1,28 @@
 import GridSquare from "./GridSquare";
-import classes from "./Board.module.css";
-import { SetStateAction, useEffect, useState } from "react";
+import classes from "../css/Board.module.css";
+import { useEffect, useState } from "react";
 import { AVAILABLE_SHIPS } from "./Fleet";
 import {
-    cols,
+    calculateOverhang,
     generateEmptyBoard,
-    indexToCoords,
-    rows,
     shipIndices,
-} from "./BoardFunctions";
+} from "../../utils/BoardFunctions";
 
 import Alert from "react-bootstrap/Alert";
+import {
+    SetBoardInterface,
+    SetBoardShipInterface,
+} from "../interfaces/BoardInterface";
 
-const calculateOverhang = (ship: {
-    position: number;
-    length: number;
-    orientation: string;
-}) => {
-    const coords = indexToCoords(ship.position);
-    return Math.max(
-        ship.orientation === "vertical"
-            ? coords.y + ship.length - rows
-            : coords.x + ship.length - cols,
-        0
-    );
-};
-
-const SetBoard = (props: {
-    selectedShip: string;
-    onShipSelect: React.Dispatch<React.SetStateAction<string>>;
-    setInitialBoard: React.Dispatch<
-        SetStateAction<
-            | {
-                  board: string[];
-                  shipLocations: { name: string; location: number[] }[];
-              }
-            | undefined
-        >
-    >;
-}) => {
+const SetBoard = (props: SetBoardInterface) => {
     const [indices, setIndices] = useState<number[]>([]);
     const [outOfBounds, setOutOfBounds] = useState(false);
     const [board, setBoard] = useState<string[]>(generateEmptyBoard());
     const [boardPrev, setBoardPrev] = useState<string[]>(generateEmptyBoard());
     const [orientation, setOrientation] = useState("horizontal");
-    const [shipFormation, setShipFormation] = useState<
-        { name: string; location: number[] }[]
-    >([]);
+    const [shipFormation, setShipFormation] = useState<SetBoardShipInterface[]>(
+        []
+    );
 
     useEffect(() => {
         if (props.selectedShip === "reset") {
@@ -129,15 +105,21 @@ const SetBoard = (props: {
                         ];
                         setShipFormation(addShip);
                         setBoardPrev(board);
-                        props.onShipSelect("");
+                        props.onShipSelect({
+                            type: "SET_SELECTED_SHIP",
+                            payload: "",
+                        });
                         AVAILABLE_SHIPS[index].placed = true;
                     }
                 }
             }
         }
         props.setInitialBoard({
-            board: board,
-            shipLocations: shipFormation,
+            type: "SET_YOU",
+            payload: {
+                board: board,
+                shipLocations: shipFormation,
+            },
         });
     };
 

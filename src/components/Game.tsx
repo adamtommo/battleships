@@ -1,43 +1,71 @@
-import { useEffect, useState } from "react";
-import SetBoard from "./SetBoard";
-import Fleet from "./Fleet";
-import Board from "./Board";
+import { useEffect, useReducer, useRef } from "react";
+import SetBoard from "./board/SetBoard";
+import Fleet from "./board/Fleet";
+import Board from "./board/Board";
 import { Alert, Button, Col, Container, Modal, Row } from "react-bootstrap";
 import { WelcomeScreen } from "./WelcomeScreen";
 import useWebSocket from "react-use-websocket";
-import { generateEmptyBoard } from "./BoardFunctions";
-import { generateComputerBoard, computerFire } from "./Computer";
+import { generateEmptyBoard } from "../utils/BoardFunctions";
+import { generateComputerBoard, computerFire } from "../utils/Computer";
 import { WS_URL } from "../WS";
+import {
+    ActionInterface,
+    GameBoardInterface,
+    StateInterface,
+} from "./interfaces/BoardInterface";
 
 const Game = () => {
-    const [rooms, setRooms] = useState<string[]>([]);
-    const [selectedShip, setSelectedShip] = useState<string>("");
-    const [you, setYou] = useState<{
-        board: string[];
-        shipLocations: {
-            name: string;
-            location: number[];
-        }[];
-    }>();
-    const [opponent, setOpponent] = useState<{
-        board: string[];
-        shipLocations: {
-            name: string;
-            location: number[];
-        }[];
-    }>({
+    const emptyBoard: GameBoardInterface = {
         board: generateEmptyBoard(),
         shipLocations: [{ name: "null", location: [0] }],
-    });
+    };
 
-    const [gameState, setGameState] = useState("intro");
-    const [computer, setComputer] = useState(false);
-    const [fullError, setFullError] = useState<boolean>(false);
-    const [disconnectError, setDisconnectError] = useState(false);
-    const [waiting, setWaiting] = useState<boolean>(false);
-    const [yourTurn, setYourTurn] = useState<boolean>(false);
-    const [winner, setWinner] = useState<boolean>(false);
-    const [loser, setLoser] = useState<boolean>(false);
+    const initialState = {
+        you: emptyBoard,
+        opponent: emptyBoard,
+        rooms: [],
+        selectedShip: "",
+        gameState: "intro",
+        computer: false,
+        fullError: false,
+        disconnectError: false,
+        waiting: false,
+        yourTurn: false,
+        winner: false,
+        loser: false,
+    };
+
+    const gameReducer = (state: StateInterface, action: ActionInterface) => {
+        switch (action.type) {
+            case "SET_ROOMS":
+                return { ...state, rooms: action.payload };
+            case "SET_SELECTED_SHIP":
+                return { ...state, selectedShip: action.payload };
+            case "SET_GAME_STATE":
+                return { ...state, gameState: action.payload };
+            case "SET_COMPUTER":
+                return { ...state, computer: action.payload };
+            case "SET_FULL_ERROR":
+                return { ...state, fullError: action.payload };
+            case "SET_DISCONNECT_ERROR":
+                return { ...state, disconnectError: action.payload };
+            case "SET_WAITING":
+                return { ...state, waiting: action.payload };
+            case "SET_YOUR_TURN":
+                return { ...state, yourTurn: action.payload };
+            case "SET_WINNER":
+                return { ...state, winner: action.payload };
+            case "SET_LOSER":
+                return { ...state, loser: action.payload };
+            case "SET_YOU":
+                return { ...state, you: action.payload };
+            case "SET_OPPONENT":
+                return { ...state, opponent: action.payload };
+            default:
+                return state;
+        }
+    };
+    const [state, dispatch] = useReducer(gameReducer, initialState);
 
     const {
         // sendMessage,
@@ -60,91 +88,99 @@ const Game = () => {
             multiplayer: multiplayer,
         });
         if (!multiplayer) {
-            setComputer(true);
+            dispatch({ type: "SET_COMPUTER", payload: true });
         }
     };
 
+    const isMounted = useRef(false);
     useEffect(() => {
-        if (!lastMessage) {
-            return;
-        }
-        const message = JSON.parse(lastMessage.data);
-        const type = message.type;
-
-        if (type === "room") {
-            if (message.allowed) {
-                setGameState("setup");
-            } else {
-                setFullError(true);
+        if (isMounted.current) {
+            if (!lastMessage) {
+                return;
             }
-        }
-        if (type === "rooms") {
-            setRooms(message.rooms);
-        }
-        if (type === "kick") {
-            window.location.reload();
-            window.onload = () => setDisconnectError(true);
-        }
-        if (type === "start") {
-            setWaiting(true);
-            setGameState("play");
-        }
-        if (type === "turn") {
-            setWaiting(!waiting);
-            setYourTurn(!yourTurn);
-        }
-        if (type === "computerTurn") {
-            setWaiting(!waiting);
-            setYourTurn(!yourTurn);
-            const computerOppBoard: string[] = message.board;
-            const coords: number = computerFire(computerOppBoard);
-            fire(coords, true);
-        }
-        if (type === "computerTurnAgain") {
-            const computerOppBoard: string[] = message.board;
-            const coords: number = computerFire(computerOppBoard);
-            fire(coords, true);
-        }
-        if (type === "setYou") {
-            setYou(message.player);
-        }
-        if (type === "setOpponent") {
-            setOpponent(message.player);
-        }
-        if (type === "win") {
-            setWaiting(false);
-            setYourTurn(false);
-            setWinner(true);
-            setComputer(false);
-        }
-        if (type === "lose") {
-            setWaiting(false);
-            setYourTurn(false);
-            setLoser(true);
-            setComputer(false);
+            const message = JSON.parse(lastMessage.data);
+            const type = message.type;
+
+            if (type === "room") {
+                if (message.allowed) {
+                    dispatch({ type: "SET_GAME_STATE", payload: "setup" });
+                } else {
+                    dispatch({ type: "SET_FULL_ERROR", payload: true });
+                }
+            }
+            if (type === "rooms") {
+                dispatch({ type: "SET_ROOMS", payload: message.rooms });
+            }
+            if (type === "kick") {
+                // window.location.reload();
+                // window.onload = () => setDisconnectError(true);
+                dispatch({ type: "SET_DISCONNECT_ERROR", payload: true });
+            }
+            if (type === "start") {
+                dispatch({ type: "SET_WAITING", payload: true });
+                dispatch({ type: "SET_GAME_STATE", payload: "play" });
+            }
+            if (type === "turn") {
+                dispatch({ type: "SET_WAITING", payload: !state.waiting });
+                dispatch({ type: "SET_YOUR_TURN", payload: !state.yourTurn });
+            }
+            if (type === "computerTurn") {
+                dispatch({ type: "SET_WAITING", payload: !state.waiting });
+                dispatch({ type: "SET_YOUR_TURN", payload: !state.yourTurn });
+                const computerOppBoard: string[] = message.board;
+                const coords: number = computerFire(computerOppBoard);
+                fire(coords, true);
+            }
+            if (type === "computerTurnAgain") {
+                const computerOppBoard: string[] = message.board;
+                const coords: number = computerFire(computerOppBoard);
+                fire(coords, true);
+            }
+            if (type === "setYou") {
+                dispatch({ type: "SET_YOU", payload: message.player });
+            }
+            if (type === "setOpponent") {
+                dispatch({ type: "SET_OPPONENT", payload: message.player });
+            }
+            if (type === "win") {
+                console.log("win");
+                dispatch({ type: "SET_WAITING", payload: false });
+                dispatch({ type: "SET_YOUR_TURN", payload: false });
+                dispatch({ type: "SET_WINNER", payload: true });
+                dispatch({ type: "SET_COMPUTER", payload: false });
+            }
+            if (type === "lose") {
+                dispatch({ type: "SET_WAITING", payload: false });
+                dispatch({ type: "SET_YOUR_TURN", payload: false });
+                dispatch({ type: "SET_LOSER", payload: true });
+                dispatch({ type: "SET_COMPUTER", payload: false });
+            }
+        } else {
+            isMounted.current = true;
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
 
     const sendInitial = () => {
-        setWaiting(true);
+        dispatch({ type: "SET_WAITING", payload: true });
 
         //Sometimes sends the last ship placed as forbidden, this is to prevent this.
-        const boardCheck = you;
-        boardCheck!.board.forEach((square, i) => {
+        const boardCheck = state.you;
+        console.log(boardCheck);
+        boardCheck!.board.forEach((square: string, i: number) => {
             if (square === "forbidden") {
-                boardCheck!.board[i] = "ship";
+                boardCheck.board[i] = "ship";
             }
         });
-        setYou(boardCheck);
+        dispatch({ type: "SET_YOU", payload: boardCheck });
 
         sendJsonMessage({
             action: "setBoard",
-            player: JSON.stringify(you),
+            player: JSON.stringify(state.you),
             opponent: JSON.stringify(generateEmptyBoard()),
         });
 
-        if (computer) {
+        if (state.computer) {
             sendJsonMessage({
                 action: "setBoard",
                 player: JSON.stringify(generateComputerBoard()),
@@ -167,16 +203,19 @@ const Game = () => {
 
     return (
         <>
-            {gameState === "play" ? (
+            {state.gameState === "play" ? (
                 <>
-                    <Modal show={winner}>
+                    <Modal show={state.winner}>
                         <Modal.Body>
                             <Alert variant="success"> You WIN!</Alert>
                         </Modal.Body>
                         <Modal.Footer>
                             <Button
                                 onClick={() => {
-                                    setGameState("intro");
+                                    dispatch({
+                                        type: "SET_GAME_STATE",
+                                        payload: "intro",
+                                    });
                                     window.location.reload();
                                 }}
                             >
@@ -184,14 +223,17 @@ const Game = () => {
                             </Button>
                         </Modal.Footer>
                     </Modal>
-                    <Modal show={loser}>
+                    <Modal show={state.loser}>
                         <Modal.Body>
                             <Alert variant="danger"> You LOSE!</Alert>
                         </Modal.Body>
                         <Modal.Footer>
                             <Button
                                 onClick={() => {
-                                    setGameState("intro");
+                                    dispatch({
+                                        type: "SET_GAME_STATE",
+                                        payload: "intro",
+                                    });
                                     window.location.reload();
                                 }}
                             >
@@ -201,70 +243,77 @@ const Game = () => {
                     </Modal>
                 </>
             ) : null}
-            {waiting && gameState === "setup" ? (
+            {state.waiting && state.gameState === "setup" ? (
                 <Alert variant="info"> Waiting for other player</Alert>
             ) : null}
-            {disconnectError ? (
+            {state.disconnectError ? (
                 <Alert
                     variant="warning"
-                    onClose={() => setDisconnectError(false)}
+                    onClose={() =>
+                        dispatch({
+                            type: "SET_DISCONNECT_ERROR",
+                            payload: false,
+                        })
+                    }
                     dismissible
                 >
                     {" "}
                     Player Disconnected
                 </Alert>
             ) : null}
-            {fullError ? (
+            {state.fullError ? (
                 <Alert
                     variant="danger"
-                    onClose={() => setFullError(false)}
+                    onClose={() =>
+                        dispatch({ type: "SET_FULL_ERROR", payload: false })
+                    }
                     dismissible
                 >
                     {" "}
                     Room is full!
                 </Alert>
             ) : null}
-            {gameState === "intro" ? (
+            {state.gameState === "intro" ? (
                 <WelcomeScreen
                     refreshRooms={() => sendJsonMessage({ action: "getRoom" })}
                     setRoomName={setRoom}
-                    roomsList={rooms}
+                    roomsList={state.rooms}
                 />
             ) : null}
             <Container>
                 <Row>
                     <Col xs={2}>
-                        {gameState === "setup" ? (
+                        {state.gameState === "setup" ? (
                             <Fleet
-                                onShipSelect={setSelectedShip}
+                                onShipSelect={dispatch}
                                 onStart={sendInitial}
                             />
                         ) : null}
                     </Col>
                     <Col md="auto">
-                        {gameState === "setup" ? (
+                        {state.gameState === "setup" ? (
                             <SetBoard
-                                selectedShip={selectedShip}
-                                onShipSelect={setSelectedShip}
-                                setInitialBoard={setYou}
+                                selectedShip={state.selectedShip}
+                                onShipSelect={dispatch}
+                                setInitialBoard={dispatch}
                             />
                         ) : null}
 
-                        {gameState === "play" ? (
+                        {state.gameState === "play" ? (
                             <Board
-                                board={you!.board}
+                                board={state.you.board}
                                 player="You"
-                                turn={yourTurn}
+                                turn={state.yourTurn}
                                 fire={fire}
                             />
                         ) : null}
                     </Col>
                     <Col md="auto">
-                        {gameState === "play" ? (
+                        {state.gameState === "play" ? (
                             <Board
-                                board={opponent.board}
+                                board={state.opponent.board}
                                 player="Opponent"
-                                turn={yourTurn}
+                                turn={state.yourTurn}
                                 fire={fire}
                             />
                         ) : null}

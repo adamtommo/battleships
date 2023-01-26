@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Container, Form, Modal, Table } from "react-bootstrap";
-import classes from "./WelcomeScreen.module.css";
+import classes from "./css/WelcomeScreen.module.css";
 
 export const WelcomeScreen = (props: {
     setRoomName: (room: string, multiplayer: boolean) => void;
